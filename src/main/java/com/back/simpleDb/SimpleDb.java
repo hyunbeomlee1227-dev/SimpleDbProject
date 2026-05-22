@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -97,7 +98,7 @@ public class SimpleDb {
     }
 
     public int runForRowsCount(String sql, Object... params) {
-        return execute(sql, params, stmt -> stmt.executeUpdate());
+        return execute(sql, params, PreparedStatement::executeUpdate);
     }
 
     public List<Map<String, Object>> runForRows(String sql, Object... params) {
@@ -119,6 +120,15 @@ public class SimpleDb {
                 }
 
                 return rows;
+            }
+        });
+    }
+
+    public LocalDateTime selectDatetime(String sql, Object... params) {
+        return execute(sql, params, stmt -> {
+            try (ResultSet rs = stmt.executeQuery()) {
+                rs.next();
+                return (LocalDateTime) rs.getObject(1);
             }
         });
     }

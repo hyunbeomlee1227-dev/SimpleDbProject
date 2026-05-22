@@ -69,9 +69,9 @@ public class Sql {
     }
 
     public LocalDateTime selectDatetime() {
-
+        LocalDateTime selectDatetime = simpleDb.selectDatetime(sql, params.toArray());
         sql = "";
-        return null;
+        return selectDatetime;
     }
 
     public Long selectLong() {
