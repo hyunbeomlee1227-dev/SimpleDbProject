@@ -24,6 +24,7 @@ public class SimpleDb {
         this.username = username;
         this.password = password;
         this.databaseName = databaseName;
+
     }
 
     public Sql genSql() {
@@ -124,11 +125,12 @@ public class SimpleDb {
         });
     }
 
-    public LocalDateTime selectDatetime(String sql, Object... params) {
+    public <T> T selectOne(String sql, Class<T> cls, Object... params) {
         return execute(sql, params, stmt -> {
             try (ResultSet rs = stmt.executeQuery()) {
-                rs.next();
-                return (LocalDateTime) rs.getObject(1);
+                if (!rs.next()) return null;
+
+                return cls.cast(rs.getObject(1));
             }
         });
     }

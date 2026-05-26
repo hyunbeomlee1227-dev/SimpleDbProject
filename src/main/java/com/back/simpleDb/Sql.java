@@ -57,7 +57,6 @@ public class Sql {
     }
 
     public <T> List<T> selectRows(Class<T> cls) {
-
         sql = "";
         return null;
     }
@@ -69,14 +68,15 @@ public class Sql {
     }
 
     public LocalDateTime selectDatetime() {
-        LocalDateTime selectDatetime = simpleDb.selectDatetime(sql, params.toArray());
+        LocalDateTime selectDatetime = simpleDb.selectOne(sql, LocalDateTime.class, params.toArray());
         sql = "";
         return selectDatetime;
     }
 
     public Long selectLong() {
+        Long id = simpleDb.selectOne(sql, Long.class, params.toArray());
         sql = "";
-        return null;
+        return id;
     }
 
     public List<Long> selectLongs() {
@@ -86,15 +86,17 @@ public class Sql {
     }
 
     public String selectString() {
+        String string = simpleDb.selectOne(sql, String.class, params.toArray());
 
         sql = "";
-        return null;
+        return string;
     }
 
     public Boolean selectBoolean() {
+        Boolean aBoolean = simpleDb.selectOne(sql, Boolean.class, params.toArray());
 
         sql = "";
-        return null;
+        return aBoolean;
     }
 
 }
