@@ -146,6 +146,22 @@ public class SimpleDb {
         });
     }
 
+    public <T> List<T> selectOneList(String sql, Class<T> cls, Object... params) {
+        return execute(sql, params, stmt -> {
+            try (ResultSet rs = stmt.executeQuery()) {
+                List<T> list = new ArrayList<>();
+
+                while (rs.next())
+                {
+                    list.add(cls.cast(rs.getObject(1)));
+                }
+
+                return list;
+            }
+        });
+    }
+
+
     public void close() {
         System.out.println();
     }

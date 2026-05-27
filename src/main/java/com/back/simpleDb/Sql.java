@@ -85,9 +85,10 @@ public class Sql {
     }
 
     public List<Long> selectLongs() {
+        List<Long> foundIds = simpleDb.selectOneList(sql, Long.class, params.toArray());
         sql = "";
 
-        return null;
+        return foundIds;
     }
 
     public String selectString() {
