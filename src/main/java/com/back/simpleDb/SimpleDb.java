@@ -1,26 +1,39 @@
 package com.back.simpleDb;
 
-import lombok.Getter;
 import lombok.Setter;
 
 import java.sql.*;
 import java.util.*;
 
-@Getter
-@Setter
 public class SimpleDb {
     private final String host;
     private final String username;
     private final String password;
     private final String databaseName;
+    @Setter
     private boolean devMode = false;
+
+    private final ThreadLocal<Connection> connectionThread = new ThreadLocal<>();
 
     public SimpleDb(String host, String username, String password, String databaseName) {
         this.host = host;
         this.username = username;
         this.password = password;
         this.databaseName = databaseName;
+    }
 
+    Connection getConnection() {
+        Connection conn = connectionThread.get();
+        try {
+            if (conn == null || conn.isClosed()) {
+                String url = "jdbc:mysql://" + host + ":3306/" + databaseName;
+                conn = DriverManager.getConnection(url, username, password);
+                connectionThread.set(conn);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return conn;
     }
 
     public Sql genSql() {
@@ -43,12 +56,10 @@ public class SimpleDb {
             Object[] params,
             StatementHandler<T> handler
     ) {
-        String url = "jdbc:mysql://" + host + ":3306/" + databaseName;
-
         try (
-                Connection conn = DriverManager.getConnection(url, username, password);
-                PreparedStatement stmt = conn.prepareStatement(sql)
+                Connection conn = getConnection();
         ) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
             setParams(stmt, params);
 
             return handler.handle(stmt);
@@ -62,12 +73,10 @@ public class SimpleDb {
             Object[] params,
             StatementHandler<T> handler
     ) {
-        String url = "jdbc:mysql://" + host + ":3306/" + databaseName;
-
         try (
-                Connection conn = DriverManager.getConnection(url, username, password);
-                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)
+                Connection conn = getConnection();
         ) {
+            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             setParams(stmt, params);
 
             return handler.handle(stmt);
@@ -181,8 +190,7 @@ public class SimpleDb {
             try (ResultSet rs = stmt.executeQuery()) {
                 List<T> list = new ArrayList<>();
 
-                while (rs.next())
-                {
+                while (rs.next()) {
                     list.add(cls.cast(rs.getObject(1)));
                 }
 
@@ -193,10 +201,26 @@ public class SimpleDb {
 
 
     public void close() {
-        System.out.println();
+        Connection conn = connectionThread.get();
+        if (conn != null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            } finally {
+                connectionThread.remove();
+            }
+        }
     }
 
     public void startTransaction() {
+        try (
+                Connection conn = getConnection();
+        ) {
+            conn.setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void rollback() {

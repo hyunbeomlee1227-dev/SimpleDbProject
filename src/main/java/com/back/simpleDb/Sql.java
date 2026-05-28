@@ -14,6 +14,7 @@ public class Sql {
     public Sql(SimpleDb simpleDb) {
         this.simpleDb = simpleDb;
     }
+
     public Sql append(String sql, Object... params) {
         this.sql += sql + " ";
         if (params.length != 0)
@@ -71,7 +72,6 @@ public class Sql {
     public <T> T selectRow(Class<T> cls)
     {
         T selectedRow = simpleDb.runForRows(sql, cls, params.toArray()).getFirst();
-
         sql = "";
         return selectedRow;
     }
@@ -91,20 +91,17 @@ public class Sql {
     public List<Long> selectLongs() {
         List<Long> foundIds = simpleDb.selectOneList(sql, Long.class, params.toArray());
         sql = "";
-
         return foundIds;
     }
 
     public String selectString() {
         String string = simpleDb.selectOne(sql, String.class, params.toArray());
-
         sql = "";
         return string;
     }
 
     public Boolean selectBoolean() {
         Boolean aBoolean = simpleDb.selectOne(sql, Boolean.class, params.toArray());
-
         sql = "";
         return aBoolean;
     }
